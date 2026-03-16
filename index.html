@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Last Z Signature Studio</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #121a2f;
+            --panel-2: #0f172a;
+            --line: #24314d;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-2: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #172554 0%, var(--bg) 45%);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            padding: 24px;
+        }
+
+        .shell {
+            max-width: 1380px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: 34px;
+        }
+
+        .hero p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            max-width: 760px;
+            line-height: 1.5;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 430px minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: rgba(18, 26, 47, 0.96);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 12px 34px rgba(0, 0, 0, .28);
+        }
+
+        .card-body {
+            padding: 18px;
+        }
+
+        .section-title {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        .subtle {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: var(--panel-2);
+            color: white;
+            font-size: 15px;
+        }
+
+        input[type="color"] {
+            min-height: 46px;
+            padding: 6px;
+        }
+
+        textarea {
+            min-height: 132px;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .range-wrap {
+            display: grid;
+            grid-template-columns: 1fr 70px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .range-value {
+            text-align: center;
+            padding: 10px 8px;
+            border-radius: 12px;
+            background: var(--panel-2);
+            border: 1px solid #334155;
+            font-size: 14px;
+        }
+
+        .templates,
+        .symbol-library,
+        .preset-grid,
+        .chip-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pill,
+        .mini-btn,
+        .chip {
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        .pill.active,
+        .chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .mini-btn:hover,
+        .pill:hover,
+        .chip:hover {
+            border-color: var(--primary-2);
+        }
+
+        .right-col {
+            display: grid;
+            gap: 18px;
+        }
+
+        .preview {
+            padding: 26px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #081120, #0d1728);
+            border: 1px solid #26344f;
+            min-height: 168px;
+        }
+
+        .preview-text {
+            font-weight: 700;
+            letter-spacing: 1px;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .code-toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            background: var(--primary);
+            color: white;
+        }
+
+        button.secondary {
+            background: #334155;
+        }
+
+        button.success {
+            background: var(--success);
+        }
+
+        button.danger {
+            background: var(--danger);
+        }
+
+        .preset-card {
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 12px;
+            min-width: 170px;
+            cursor: pointer;
+            flex: 1 1 170px;
+        }
+
+        .preset-card:hover {
+            border-color: var(--primary-2);
+        }
+
+        .preset-name {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .preset-preview {
+            font-weight: 700;
+            font-size: 22px;
+            min-height: 36px;
+        }
+
+        .footer-note {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .lang-select {
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: white;
+            padding: 8px 10px;
+            min-width: 120px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .stat-box {
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .saved-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #0b1220;
+            border: 1px solid #334155;
+        }
+
+        .saved-meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .saved-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .saved-preview {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .saved-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .saved-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="shell">
+        <div class="hero">
+            <div>
+                <h1>{{ t('title') }}</h1>
+                <p>{{ t('subtitle') }}</p>
+            </div>
+            <div class="hero-actions">
+                <select v-model="lang" class="lang-select">
+                    <option value="th">ไทย</option>
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="zh">中文</option>
+                </select>
+                <button class="secondary" @click="randomizePreset">{{ t('random') }}</button>
+                <button @click="copyShareLink">{{ t('share') }}</button>
+            </div>
+        </div>
+
+        <div class="layout">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="section-title">{{ t('editor') }}</h2>
+
+                    <div class="templates" style="margin-bottom:14px;">
+                        <div v-for="item in templateOptions" :key="item.value" class="pill"
+                            :class="{ active: template === item.value }" @click="template = item.value">
+                            {{ item.label }}
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="full">
+                            <label>{{ t('text') }}</label>
+                            <input v-model="text" maxlength="24" :placeholder="t('textPlaceholder')">
+                        </div>
+
+                        <div>
+                            <label>{{ t('size') }}</label>
+                            <div class="range-wrap">
+                                <input type="range" v-model.number="size" min="18" max="60">
+                                <div class="range-value">{{ size }}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>{{ t('align') }}</label>
+                            <select v-model="align">
+                                <option value="center">{{ t('center') }}</option>
+                                <option value="left">{{ t('left') }}</option>
+                                <option value="right">{{ t('right') }}</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>{{ t('leftSymbol') }}</label>
+                            <input v-model="leftSymbols" :placeholder="t('leftPlaceholder')">
+                        </div>
+
+                        <div>
+                            <label>{{ t('rightSymbol') }}</label>
+                            <input v-model="rightSymbols" :placeholder="t('rightPlaceholder')">
+                        </div>
+
+                        <div class="full">
+                            <label>{{ t('symbolLibrary') }}</label>
+                            <div class="symbol-library">
+                                <div v-for="sym in symbolLibrary" :key="sym" class="mini-btn"
+                                    @click="appendSymbol(sym)">{{ sym }}</div>
+                            </div>
+                            <div class="footer-note">{{ t('symbolHint') }}</div>
+                        </div>
+
+                        <div class="full">
+                            <label>{{ t('customColors') }}</label>
+                            <div class="chip-row" style="margin-bottom:10px;">
+                                <div class="chip" :class="{ active: useCustomColors }"
+                                    @click="useCustomColors = !useCustomColors">
+                                    {{ useCustomColors ? t('customOn') : t('customOff') }}
+                                </div>
+                                <div class="chip" @click="shuffleColors">{{ t('shuffleColors') }}</div>
+                            </div>
+                            <div class="grid">
+                                <div v-for="(color, index) in customColors" :key="index">
+                                    <label>{{ t('color') }} {{ index + 1 }}</label>
+                                    <input type="color" v-model="customColors[index]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions" style="margin-top:16px;">
+                        <button @click="copySignature">{{ copyStatus ? copyStatus : t('copyScript') }}</button>
+                        <button class="secondary" @click="copyPlainText">{{ t('copyPlain') }}</button>
+                        <button class="secondary" @click="savePreset">{{ t('savePreset') }}</button>
+                        <button class="secondary" @click="exportPreset">{{ t('exportJson') }}</button>
+                        <button class="secondary" @click="importPreset">{{ t('importJson') }}</button>
+                        <button class="secondary" @click="resetForm">{{ t('reset') }}</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="section-title">{{ t('preview') }}</h2>
+                        <div class="preview">
+                            <div class="preview-text" :style="previewStyle" v-html="previewHtml"></div>
+                            <div class="footer-note">{{ t('previewHint') }}</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-box">
+                                <div class="stat-label">{{ t('charCount') }}</div>
+                                <div class="stat-value">{{ text.length }}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">{{ t('scriptLength') }}</div>
+                                <div class="stat-value">{{ signature.length }}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">{{ t('template') }}</div>
+                                <div class="stat-value">{{ activeTemplateLabel }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="code-toolbar">
+                            <h2 class="section-title" style="margin:0;">{{ t('script') }}</h2>
+                            <div class="subtle">{{ t('readyToUse') }}</div>
+                        </div>
+                        <textarea readonly :value="signature"></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="code-toolbar">
+                            <h2 class="section-title" style="margin:0;">{{ t('savedPresets') }}</h2>
+                            <button class="danger" @click="clearSavedPresets" v-if="savedPresets.length">{{
+                                t('clearSaved') }}</button>
+                        </div>
+                        <div v-if="!savedPresets.length" class="footer-note">{{ t('noSaved') }}</div>
+                        <div v-else class="saved-list">
+                            <div v-for="p in savedPresets" :key="p.id" class="saved-item">
+                                <div class="saved-meta">
+                                    <div class="saved-name">{{ p.name }}</div>
+                                    <div class="saved-preview">{{ p.text }} · {{ p.template }} · {{ p.left }} {{ p.right
+                                        }}</div>
+                                </div>
+                                <div class="saved-actions">
+                                    <button class="secondary" @click="loadPreset(p)">{{ t('load') }}</button>
+                                    <button class="danger" @click="deletePreset(p.id)">{{ t('delete') }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="section-title">{{ t('presets') }}</h2>
+                        <div class="preset-grid">
+                            <div v-for="preset in presets" :key="preset.name" class="preset-card"
+                                @click="applyPreset(preset)">
+                                <div class="preset-name">{{ preset.name }}</div>
+                                <div class="preset-preview" v-html="renderPresetPreview(preset)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    lang: 'th',
+                    text: 'SUPERSTAR',
+                    size: 40,
+                    leftSymbols: '✦',
+                    rightSymbols: '✦',
+                    template: 'galaxy',
+                    align: 'center',
+                    useCustomColors: false,
+                    customColors: ['#ff4d6d', '#f59e0b', '#22c55e', '#38bdf8', '#8b5cf6', '#ec4899'],
+                    templateOptions: [
+                        { value: 'galaxy', label: 'Galaxy' },
+                        { value: 'fire', label: 'Fire' },
+                        { value: 'neon', label: 'Neon' },
+                        { value: 'rainbow', label: 'Rainbow' },
+                        { value: 'leader', label: 'Leader' },
+                        { value: 'ice', label: 'Ice' },
+                        { value: 'toxic', label: 'Toxic' },
+                        { value: 'rose', label: 'Rose' },
+                        { value: 'gold', label: 'Gold' },
+                        { value: 'blood', label: 'Blood' },
+                        { value: 'ocean', label: 'Ocean' },
+                        { value: 'sunset', label: 'Sunset' }
+                    ],
+                    palettes: {
+                        gold: ['#FFF7AE', '#FFE066', '#FFD700', '#FFC300', '#FFB700'],
+                        blood: ['#7F0000', '#B30000', '#E60000', '#FF1A1A', '#FF4D4D'],
+                        ocean: ['#0EA5E9', '#0284C7', '#0369A1', '#075985', '#0C4A6E'],
+                        sunset: ['#FF7A18', '#FF9A3C', '#FFB347', '#FFD194', '#FFE6B7'],
+                        galaxy: ['#A78BFA', '#8B9EFF', '#6BCBFF', '#5DE2E7', '#4FC3F7', '#7C8CFF', '#9C6BFF'],
+                        fire: ['#FF2A00', '#FF3B00', '#FF4D00', '#FF6A00', '#FF8500', '#FFA000'],
+                        neon: ['#9EE0FF', '#7AD1FF', '#5BC0FF', '#4FC3F7', '#29B6F6'],
+                        rainbow: ['#FF6B6B', '#FFA94D', '#FFD43B', '#69DB7C', '#4DABF7', '#9775FA', '#F783AC'],
+                        leader: ['#FFD700', '#FFC300', '#FFB000', '#FFA000', '#FFD700'],
+                        ice: ['#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9'],
+                        toxic: ['#D9F99D', '#A3E635', '#84CC16', '#65A30D', '#4D7C0F'],
+                        rose: ['#FFE4E6', '#FDA4AF', '#FB7185', '#F43F5E', '#E11D48']
+                    },
+                    symbolLibrary: ['✦', '✧', '★', '☆', '🔥', '⚔', '👑', '✨', '☄', '❖', '✪', '✵', '☠', '⚡', '🪽', '💎', '❂', '✹', '✺', '✻', '✼', '✽', '✾', '❀', '❁', '❃', '❇', '❈', '❉', '❊', '❋', '☾', '☽', '☀', '☁', '☂', '☯', '☮', '♛', '♚', '♜', '♞', '♟', '♠', '♣', '♥', '♦', '🛡', '🏹', '🐉', '🦅', '🦁', '🌙', '🌟', '🌌', '🌈'],
+                    savedPresets: [],
+                    copyStatus: '',
+                    i18n: {
+                        th: {
+                            title: 'Last Z Signature Studio',
+                            subtitle: 'ออกแบบลายเซ็นสำหรับทั้งเซิร์ฟ เลือกเทมเพลต ปรับสี เพิ่มสัญลักษณ์ และคัดลอก script ไปใช้ในเกมได้ทันที',
+                            editor: 'ตัวแก้ไข', text: 'ข้อความ', size: 'ขนาดตัวอักษร', align: 'จัดวาง', leftSymbol: 'สัญลักษณ์ซ้าย', rightSymbol: 'สัญลักษณ์ขวา',
+                            symbolLibrary: 'คลังสัญลักษณ์ (กดเพื่อเพิ่ม)', preview: 'ตัวอย่าง', script: 'สคริปต์ลายเซ็น', presets: 'Preset ยอดนิยม',
+                            random: 'สุ่มลายเซ็น', share: 'คัดลอกลิงก์แชร์', textPlaceholder: 'เช่น SUPERSTAR หรือ KING OF 244',
+                            leftPlaceholder: 'เช่น 👑⚔🔥', rightPlaceholder: 'เช่น 🔥⚔👑', symbolHint: 'กดครั้งแรกจะใส่ทางซ้าย กดครั้งถัดไปจะใส่ทางขวา',
+                            customColors: 'Custom Colors', customOn: 'Custom On', customOff: 'Custom Off', shuffleColors: 'สุ่มสี', color: 'สี',
+                            copyScript: 'คัดลอก Script', copyPlain: 'คัดลอกข้อความธรรมดา', reset: 'รีเซ็ต', previewHint: 'Preview นี้เป็นการจำลองบนเว็บ ส่วนในเกมจะใช้ script ด้านล่าง',
+                            charCount: 'จำนวนตัวอักษร', scriptLength: 'ความยาวสคริปต์', template: 'เทมเพลต', readyToUse: 'พร้อมใช้งานในเกม',
+                            center: 'กึ่งกลาง', left: 'ชิดซ้าย', right: 'ชิดขวา', savePreset: 'บันทึก Preset', exportJson: 'Export JSON', importJson: 'Import JSON',
+                            savedPresets: 'Preset ที่บันทึกไว้', noSaved: 'ยังไม่มี preset ที่บันทึก', load: 'โหลด', delete: 'ลบ', clearSaved: 'ล้างทั้งหมด'
+                        },
+                        en: {
+                            title: 'Last Z Signature Studio',
+                            subtitle: 'Design your server signature. Choose templates, gradients, symbols and copy the script instantly.',
+                            editor: 'Editor', text: 'Text', size: 'Font Size', align: 'Alignment', leftSymbol: 'Left Symbols', rightSymbol: 'Right Symbols',
+                            symbolLibrary: 'Symbol Library (click to add)', preview: 'Preview', script: 'Signature Script', presets: 'Popular Presets',
+                            random: 'Randomize', share: 'Copy Share Link', textPlaceholder: 'Example: SUPERSTAR or KING OF 244',
+                            leftPlaceholder: 'Example: 👑⚔🔥', rightPlaceholder: 'Example: 🔥⚔👑', symbolHint: 'First click goes left, next click goes right',
+                            customColors: 'Custom Colors', customOn: 'Custom On', customOff: 'Custom Off', shuffleColors: 'Shuffle Colors', color: 'Color',
+                            copyScript: 'Copy Script', copyPlain: 'Copy Plain Text', reset: 'Reset', previewHint: 'This is a web preview. The actual game uses the script below.',
+                            charCount: 'Characters', scriptLength: 'Script Length', template: 'Template', readyToUse: 'Ready to use in game',
+                            center: 'Center', left: 'Left', right: 'Right', savePreset: 'Save Preset', exportJson: 'Export JSON', importJson: 'Import JSON',
+                            savedPresets: 'Saved Presets', noSaved: 'No saved presets yet', load: 'Load', delete: 'Delete', clearSaved: 'Clear All'
+                        },
+                        ko: {
+                            title: 'Last Z 서명 스튜디오',
+                            subtitle: '서버용 서명을 디자인하세요. 템플릿, 그라디언트, 기호를 선택하고 스크립트를 바로 복사할 수 있습니다.',
+                            editor: '편집기', text: '텍스트', size: '글자 크기', align: '정렬', leftSymbol: '왼쪽 기호', rightSymbol: '오른쪽 기호',
+                            symbolLibrary: '기호 라이브러리', preview: '미리보기', script: '서명 스크립트', presets: '인기 프리셋',
+                            random: '랜덤', share: '공유 링크 복사', textPlaceholder: '예: SUPERSTAR 또는 KING OF 244',
+                            leftPlaceholder: '예: 👑⚔🔥', rightPlaceholder: '예: 🔥⚔👑', symbolHint: '첫 클릭은 왼쪽, 다음 클릭은 오른쪽에 추가됩니다',
+                            customColors: '커스텀 색상', customOn: '커스텀 켜짐', customOff: '커스텀 꺼짐', shuffleColors: '색상 섞기', color: '색상',
+                            copyScript: '스크립트 복사', copyPlain: '일반 텍스트 복사', reset: '초기화', previewHint: '이 미리보기는 웹용입니다. 게임에서는 아래 스크립트를 사용합니다.',
+                            charCount: '문자 수', scriptLength: '스크립트 길이', template: '템플릿', readyToUse: '게임에서 바로 사용 가능',
+                            center: '가운데', left: '왼쪽', right: '오른쪽', savePreset: '프리셋 저장', exportJson: 'JSON 내보내기', importJson: 'JSON 가져오기',
+                            savedPresets: '저장된 프리셋', noSaved: '저장된 프리셋이 없습니다', load: '불러오기', delete: '삭제', clearSaved: '전체 삭제'
+                        },
+                        zh: {
+                            title: 'Last Z 签名工作室',
+                            subtitle: '为整个服务器设计签名。选择模板、渐变和符号，然后立即复制脚本。',
+                            editor: '编辑器', text: '文本', size: '字体大小', align: '对齐', leftSymbol: '左侧符号', rightSymbol: '右侧符号',
+                            symbolLibrary: '符号库', preview: '预览', script: '签名脚本', presets: '热门预设',
+                            random: '随机生成', share: '复制分享链接', textPlaceholder: '例如：SUPERSTAR 或 KING OF 244',
+                            leftPlaceholder: '例如：👑⚔🔥', rightPlaceholder: '例如：🔥⚔👑', symbolHint: '第一次点击添加到左边，下一次点击添加到右边',
+                            customColors: '自定义颜色', customOn: '已开启', customOff: '未开启', shuffleColors: '随机颜色', color: '颜色',
+                            copyScript: '复制脚本', copyPlain: '复制纯文本', reset: '重置', previewHint: '这里是网页预览，游戏中请使用下面的脚本。',
+                            charCount: '字符数', scriptLength: '脚本长度', template: '模板', readyToUse: '可直接用于游戏',
+                            center: '居中', left: '左对齐', right: '右对齐', savePreset: '保存预设', exportJson: '导出 JSON', importJson: '导入 JSON',
+                            savedPresets: '已保存预设', noSaved: '还没有保存的预设', load: '载入', delete: '删除', clearSaved: '清空全部'
+                        }
+                    },
+                    presets: [
+                        { name: 'Galaxy King', text: 'SUPERSTAR', template: 'galaxy', left: '✦✦', right: '✦✦', size: 40, align: 'center' },
+                        { name: 'Burning PvP', text: 'SUPERSTAR', template: 'fire', left: '🔥🔥', right: '🔥🔥', size: 40, align: 'center' },
+                        { name: 'Alliance Leader', text: 'LEADER', template: 'leader', left: '👑⚔', right: '⚔👑', size: 42, align: 'center' },
+                        { name: 'Ice Prince', text: 'FROST', template: 'ice', left: '✧', right: '✧', size: 40, align: 'center' },
+                        { name: 'Toxic Hunter', text: 'PREDATOR', template: 'toxic', left: '☠', right: '☠', size: 38, align: 'center' },
+                        { name: 'Rose Queen', text: 'QUEEN', template: 'rose', left: '✦👑', right: '👑✦', size: 40, align: 'center' }
+                    ]
+                };
+            },
+            computed: {
+                palette() {
+                    return this.useCustomColors ? this.customColors.filter(Boolean) : (this.palettes[this.template] || this.palettes.galaxy);
+                },
+                alignTag() {
+                    return this.align || 'center';
+                },
+                gradientParts() {
+                    const palette = this.palette.length ? this.palette : ['#ffffff'];
+                    return [...this.text].map((ch, i) => ({ ch, color: palette[i % palette.length] }));
+                },
+                signature() {
+                    const letters = this.gradientParts.map(item => `<color=${item.color}>${item.ch}</color>`).join('');
+                    const padLeft = this.leftSymbols ? `${this.leftSymbols} ` : '';
+                    const padRight = this.rightSymbols ? ` ${this.rightSymbols}` : '';
+                    return `<align=${this.alignTag}>${padLeft}<b><size=${this.size}>${letters}</size></b>${padRight}</align>`;
+                },
+                previewHtml() {
+                    const letters = this.gradientParts.map(item => `<span style="color:${item.color}">${item.ch}</span>`).join('');
+                    return `${this.leftSymbols ? `<span>${this.leftSymbols}</span> ` : ''}${letters}${this.rightSymbols ? ` <span>${this.rightSymbols}</span>` : ''}`;
+                },
+                previewStyle() {
+                    return { fontSize: this.size + 'px', textAlign: this.align };
+                },
+                activeTemplateLabel() {
+                    return this.templateOptions.find(x => x.value === this.template)?.label || this.template;
+                }
+            },
+            mounted() {
+                this.restoreFromQuery();
+                this.loadSavedPresets();
+            },
+            methods: {
+                t(key) {
+                    return this.i18n[this.lang]?.[key] || key;
+                },
+                appendSymbol(sym) {
+                    if (!this.leftSymbols) {
+                        this.leftSymbols = sym;
+                        return;
+                    }
+                    if (!this.rightSymbols) {
+                        this.rightSymbols = sym;
+                        return;
+                    }
+                    if (this.leftSymbols.length <= this.rightSymbols.length) {
+                        this.leftSymbols += sym;
+                    } else {
+                        this.rightSymbols += sym;
+                    }
+                },
+                applyPreset(preset) {
+                    this.text = preset.text;
+                    this.template = preset.template;
+                    this.leftSymbols = preset.left;
+                    this.rightSymbols = preset.right;
+                    this.size = preset.size;
+                    this.align = preset.align;
+                    this.useCustomColors = false;
+                },
+                renderPresetPreview(preset) {
+                    const palette = this.palettes[preset.template] || this.palettes.galaxy;
+                    const letters = [...preset.text].map((ch, i) => `<span style="color:${palette[i % palette.length]}">${ch}</span>`).join('');
+                    return `${preset.left ? `<span>${preset.left}</span> ` : ''}${letters}${preset.right ? ` <span>${preset.right}</span>` : ''}`;
+                },
+                randomizePreset() {
+                    const randomPreset = this.presets[Math.floor(Math.random() * this.presets.length)];
+                    this.applyPreset(randomPreset);
+                },
+                shuffleColors() {
+                    const rand = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+                    this.customColors = Array.from({ length: 6 }, rand);
+                    this.useCustomColors = true;
+                },
+                async copySignature() {
+                    try {
+                        await navigator.clipboard.writeText(this.signature);
+                        this.copyStatus = this.lang === 'th' ? '✓ คัดลอกแล้ว' : this.lang === 'en' ? '✓ Copied' : this.lang === 'ko' ? '✓ 복사됨' : '✓ 已复制';
+                    } catch (e) {
+                        this.copyStatus = this.lang === 'th' ? 'คัดลอกไม่สำเร็จ' : this.lang === 'en' ? 'Copy failed' : this.lang === 'ko' ? '복사 실패' : '复制失败';
+                    }
+                    setTimeout(() => {
+                        this.copyStatus = '';
+                    }, 2000);
+                },
+                async copyPlainText() {
+                    const plain = `${this.leftSymbols ? this.leftSymbols + ' ' : ''}${this.text}${this.rightSymbols ? ' ' + this.rightSymbols : ''}`;
+                    try {
+                        await navigator.clipboard.writeText(plain);
+                        alert(this.lang === 'th' ? 'คัดลอกข้อความเรียบร้อย' : this.lang === 'en' ? 'Text copied' : this.lang === 'ko' ? '텍스트가 복사되었습니다' : '文本已复制');
+                    } catch (e) {
+                        alert(plain);
+                    }
+                },
+                async copyShareLink() {
+                    const params = new URLSearchParams({
+                        lang: this.lang,
+                        text: this.text,
+                        size: String(this.size),
+                        left: this.leftSymbols,
+                        right: this.rightSymbols,
+                        template: this.template,
+                        align: this.align,
+                        custom: this.useCustomColors ? '1' : '0',
+                        colors: this.customColors.join(',')
+                    });
+                    const url = `${location.origin}${location.pathname}?${params.toString()}`;
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        alert(this.lang === 'th' ? 'คัดลอกลิงก์เรียบร้อย' : this.lang === 'en' ? 'Share link copied' : this.lang === 'ko' ? '공유 링크가 복사되었습니다' : '分享链接已复制');
+                    } catch (e) {
+                        alert(url);
+                    }
+                },
+                restoreFromQuery() {
+                    const params = new URLSearchParams(location.search);
+                    if (params.has('lang')) this.lang = params.get('lang') || this.lang;
+                    if (params.has('text')) this.text = params.get('text') || this.text;
+                    if (params.has('size')) this.size = Number(params.get('size')) || this.size;
+                    if (params.has('left')) this.leftSymbols = params.get('left') || '';
+                    if (params.has('right')) this.rightSymbols = params.get('right') || '';
+                    if (params.has('template') && this.palettes[params.get('template')]) this.template = params.get('template');
+                    if (params.has('align')) this.align = params.get('align') || this.align;
+                    if (params.get('custom') === '1') this.useCustomColors = true;
+                    if (params.has('colors')) {
+                        const values = (params.get('colors') || '').split(',').filter(Boolean);
+                        if (values.length) this.customColors = values.slice(0, 6);
+                    }
+                },
+                savePreset() {
+                    const promptText = this.lang === 'th' ? 'ตั้งชื่อ preset' : this.lang === 'en' ? 'Preset name' : this.lang === 'ko' ? '프리셋 이름' : '预设名称';
+                    const name = prompt(promptText, this.text);
+                    if (!name) return;
+
+                    const preset = {
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                        name,
+                        text: this.text,
+                        template: this.template,
+                        left: this.leftSymbols,
+                        right: this.rightSymbols,
+                        size: this.size,
+                        align: this.align,
+                        useCustomColors: this.useCustomColors,
+                        customColors: [...this.customColors]
+                    };
+
+                    this.savedPresets.unshift(preset);
+                    localStorage.setItem('lz_presets', JSON.stringify(this.savedPresets));
+                },
+                loadSavedPresets() {
+                    try {
+                        const raw = localStorage.getItem('lz_presets');
+                        this.savedPresets = raw ? JSON.parse(raw) : [];
+                    } catch (e) {
+                        this.savedPresets = [];
+                    }
+                },
+                loadPreset(preset) {
+                    this.text = preset.text;
+                    this.template = preset.template;
+                    this.leftSymbols = preset.left;
+                    this.rightSymbols = preset.right;
+                    this.size = preset.size;
+                    this.align = preset.align;
+                    this.useCustomColors = !!preset.useCustomColors;
+                    if (Array.isArray(preset.customColors) && preset.customColors.length) {
+                        this.customColors = [...preset.customColors];
+                    }
+                },
+                deletePreset(id) {
+                    this.savedPresets = this.savedPresets.filter(item => item.id !== id);
+                    localStorage.setItem('lz_presets', JSON.stringify(this.savedPresets));
+                },
+                clearSavedPresets() {
+                    const confirmText = this.lang === 'th' ? 'ลบ preset ที่บันทึกทั้งหมด?' : this.lang === 'en' ? 'Delete all saved presets?' : this.lang === 'ko' ? '저장된 프리셋을 모두 삭제할까요?' : '要删除所有已保存预设吗？';
+                    if (!confirm(confirmText)) return;
+                    this.savedPresets = [];
+                    localStorage.removeItem('lz_presets');
+                },
+                exportPreset() {
+                    const data = {
+                        text: this.text,
+                        template: this.template,
+                        left: this.leftSymbols,
+                        right: this.rightSymbols,
+                        size: this.size,
+                        align: this.align,
+                        useCustomColors: this.useCustomColors,
+                        customColors: [...this.customColors]
+                    };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'signature-preset.json';
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                },
+                importPreset() {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'application/json,.json';
+                    input.onchange = (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            try {
+                                const data = JSON.parse(reader.result);
+                                this.loadPreset(data);
+                            } catch (e) {
+                                alert('Invalid preset JSON');
+                            }
+                        };
+                        reader.readAsText(file);
+                    };
+                    input.click();
+                },
+                resetForm() {
+                    this.text = 'SUPERSTAR';
+                    this.size = 40;
+                    this.leftSymbols = '✦';
+                    this.rightSymbols = '✦';
+                    this.template = 'galaxy';
+                    this.align = 'center';
+                    this.useCustomColors = false;
+                    this.customColors = ['#ff4d6d', '#f59e0b', '#22c55e', '#38bdf8', '#8b5cf6', '#ec4899'];
+                    this.copyStatus = '';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
