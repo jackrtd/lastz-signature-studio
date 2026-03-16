@@ -686,8 +686,13 @@
                 gradientParts() {
                     const palette = this.palette.length ? this.palette : ['#ffffff'];
                     let colorIndex = 0;
-                    return [...this.text].map((ch) => {
-                        if (ch === '\n' || ch === '\r') {
+                    
+                    const leftStr = this.leftSymbols ? this.leftSymbols + ' ' : '';
+                    const rightStr = this.rightSymbols ? ' ' + this.rightSymbols : '';
+                    const fullStr = leftStr + this.text + rightStr;
+
+                    return [...fullStr].map((ch) => {
+                        if (ch === '\n' || ch === '\r' || ch === ' ') {
                             return { ch, color: '' };
                         }
                         const color = palette[colorIndex % palette.length];
@@ -696,14 +701,11 @@
                     });
                 },
                 signature() {
-                    const letters = this.gradientParts.map(item => item.color ? `<color=${item.color}>${item.ch}</color>` : item.ch).join('');
-                    const padLeft = this.leftSymbols ? `${this.leftSymbols} ` : '';
-                    const padRight = this.rightSymbols ? ` ${this.rightSymbols}` : '';
-                    return `<align=${this.alignTag}>${padLeft}<b><size=${this.size}>${letters}</size></b>${padRight}</align>`;
+                    const colored = this.gradientParts.map(item => item.color ? `<color=${item.color}>${item.ch}</color>` : item.ch).join('');
+                    return `<align=${this.alignTag}><b><size=${this.size}>${colored}</size></b></align>`;
                 },
                 previewHtml() {
-                    const letters = this.gradientParts.map(item => item.color ? `<span style="color:${item.color}">${item.ch}</span>` : item.ch).join('');
-                    return `${this.leftSymbols ? `<span>${this.leftSymbols}</span> ` : ''}${letters}${this.rightSymbols ? ` <span>${this.rightSymbols}</span>` : ''}`;
+                    return this.gradientParts.map(item => item.color ? `<span style="color:${item.color}">${item.ch}</span>` : (item.ch === '\n' ? '<br>' : item.ch)).join('');
                 },
                 previewStyle() {
                     return { fontSize: this.size + 'px', textAlign: this.align };
