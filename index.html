@@ -422,7 +422,7 @@
                     <div class="grid">
                         <div class="full">
                             <label>{{ t('text') }}</label>
-                            <input v-model="text" maxlength="24" :placeholder="t('textPlaceholder')">
+                            <textarea v-model="text" maxlength="200" :placeholder="t('textPlaceholder')" @focus="lastFocused = 'text'" style="min-height: 80px;"></textarea>
                         </div>
 
                         <div>
@@ -685,16 +685,24 @@
                 },
                 gradientParts() {
                     const palette = this.palette.length ? this.palette : ['#ffffff'];
-                    return [...this.text].map((ch, i) => ({ ch, color: palette[i % palette.length] }));
+                    let colorIndex = 0;
+                    return [...this.text].map((ch) => {
+                        if (ch === '\n' || ch === '\r') {
+                            return { ch, color: '' };
+                        }
+                        const color = palette[colorIndex % palette.length];
+                        colorIndex++;
+                        return { ch, color };
+                    });
                 },
                 signature() {
-                    const letters = this.gradientParts.map(item => `<color=${item.color}>${item.ch}</color>`).join('');
+                    const letters = this.gradientParts.map(item => item.color ? `<color=${item.color}>${item.ch}</color>` : item.ch).join('');
                     const padLeft = this.leftSymbols ? `${this.leftSymbols} ` : '';
                     const padRight = this.rightSymbols ? ` ${this.rightSymbols}` : '';
                     return `<align=${this.alignTag}>${padLeft}<b><size=${this.size}>${letters}</size></b>${padRight}</align>`;
                 },
                 previewHtml() {
-                    const letters = this.gradientParts.map(item => `<span style="color:${item.color}">${item.ch}</span>`).join('');
+                    const letters = this.gradientParts.map(item => item.color ? `<span style="color:${item.color}">${item.ch}</span>` : item.ch).join('');
                     return `${this.leftSymbols ? `<span>${this.leftSymbols}</span> ` : ''}${letters}${this.rightSymbols ? ` <span>${this.rightSymbols}</span>` : ''}`;
                 },
                 previewStyle() {
@@ -717,9 +725,13 @@
                         this.leftSymbols += sym;
                     } else if (this.lastFocused === 'right') {
                         this.rightSymbols += sym;
+                    } else if (this.lastFocused === 'text') {
+                        this.text += sym;
                     } else {
                         // Default behavior if no field was focused (fallback to alternating)
-                        if (!this.leftSymbols) {
+                        if (!this.text) {
+                            this.text = sym;
+                        } else if (!this.leftSymbols) {
                             this.leftSymbols = sym;
                         } else if (!this.rightSymbols) {
                             this.rightSymbols = sym;
