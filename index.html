@@ -691,8 +691,12 @@
                     const rightStr = this.rightSymbols ? ' ' + this.rightSymbols : '';
                     const fullStr = leftStr + this.text + rightStr;
 
+                    // Regex to check for Emoji
+                    const emojiRegex = /\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}/u;
+
                     return [...fullStr].map((ch) => {
-                        if (ch === '\n' || ch === '\r' || ch === ' ') {
+                        // Skip color for newlines, spaces, and emojis
+                        if (ch === '\n' || ch === '\r' || ch === ' ' || emojiRegex.test(ch)) {
                             return { ch, color: '' };
                         }
                         const color = palette[colorIndex % palette.length];
